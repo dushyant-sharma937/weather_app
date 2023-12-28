@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 
 import 'package:weather_app/controller/home_controller.dart';
 import 'package:weather_app/widgets.dart';
@@ -16,15 +17,66 @@ class _HomeScreenState extends State<HomeScreen> {
   final HomeController homeController = Get.put(HomeController());
 
   @override
+  initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await reset();
+    });
+  }
+
+  Future<void> reset() async {
+    var temp = await homeController.getCurrentPosition();
+    if (!temp) {
+      homeController.isLoading.value = false;
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Unable to get your current location."),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    var value = await homeController.fetchData();
+    setState(() {});
+    if (value) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Weather Forecast fetched successfully"),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Weather forecase not available at this time."),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Weather App"),
+        title: const Text("Daily Weather Forecast App"),
       ),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Obx(
         () => homeController.isLoading.value
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(
+                child: Lottie.asset(
+                'assets/animation/loading_animation_2.json',
+                width: MediaQuery.of(context).size.width * 0.5,
+                height: MediaQuery.of(context).size.height * 0.3,
+              ))
             : SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Container(
@@ -46,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onPressed: () async {
                                   var value = await homeController.fetchData();
                                   if (value) {
+                                    if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
@@ -55,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     );
                                   } else {
+                                    if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text("Something went wrong"),
@@ -81,16 +135,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
-                                  "${homeController.name.value}, ${homeController.country.value}",
+                                  "${homeController.name.value}, ",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                Expanded(
+                                  child: Text(
+                                    "${homeController.country.value}",
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                                 const Spacer(),
-                                IconButton(
-                                  onPressed: () async {},
-                                  icon: const Icon(CupertinoIcons.search),
+                                // IconButton(
+                                //   onPressed: () async {},
+                                //   icon: const Icon(CupertinoIcons.search),
+                                // ),
+                                MyButton(
+                                  homeController: homeController,
                                 ),
                                 CustomPopMenuButton(
                                     homeController: homeController),
@@ -127,33 +197,51 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 20),
-                            Center(
-                              child: MaterialButton(
-                                onPressed: () async {
-                                  var value = await homeController.fetchData();
-                                  if (value) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            "Weather Forecast fetched successfully"),
-                                        backgroundColor: Colors.green,
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Something went wrong"),
-                                        backgroundColor: Colors.red,
-                                        duration: Duration(seconds: 3),
-                                      ),
-                                    );
-                                  }
-                                },
-                                color: Theme.of(context).colorScheme.primary,
-                                child: const Text("Weather Forecast"),
-                              ),
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.01),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                HalfCard(
+                                  homeController: homeController,
+                                  firstText: "Air Pressure",
+                                  secondText:
+                                      "${homeController.pressure.toString()} atm",
+                                  icon: Icons.atm_rounded,
+                                ),
+                                const Spacer(),
+                                HalfCard(
+                                  homeController: homeController,
+                                  firstText: "Visibility",
+                                  secondText:
+                                      "${homeController.visibility.toString()} m",
+                                  icon: CupertinoIcons.eye_fill,
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.01),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                HalfCard(
+                                  homeController: homeController,
+                                  firstText: "Latitude",
+                                  secondText:
+                                      "${homeController.latitude.toString()}°",
+                                  icon: CupertinoIcons.location_circle,
+                                ),
+                                const Spacer(),
+                                HalfCard(
+                                  homeController: homeController,
+                                  firstText: "Longitude",
+                                  secondText:
+                                      "${homeController.longitude.toString()}°",
+                                  icon: CupertinoIcons.location_circle,
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -162,8 +250,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await homeController.getCurrentPosition();
-          setState(() {});
+          await reset();
         },
         child: const Icon(Icons.my_location),
       ),

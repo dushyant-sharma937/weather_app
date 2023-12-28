@@ -6,7 +6,7 @@ class HomeController extends GetxController {
   RxString longitude = ''.obs;
   RxString latitude = ''.obs;
   RxString mainValue = ''.obs;
-  RxBool isLoading = false.obs;
+  RxBool isLoading = true.obs;
 
   RxString temperature = ''.obs;
   RxString tempMin = ''.obs;
@@ -23,8 +23,8 @@ class HomeController extends GetxController {
   RxString weatherDesc = ''.obs;
   RxString weatherIcon = ''.obs;
 
-  RxString weatherIconUrl =
-      'https://openweathermap.org/img/wn/{icon}@2x.png'.obs;
+  RxString weatherIconUrl = ''.obs;
+  String temp = "https://openweathermap.org/img/wn/{icon}@2x.png";
 
   final GeolocatorPlatform _geolocatorPlatform = GeolocatorPlatform.instance;
   static const String _kLocationServicesDisabledMessage =
@@ -34,19 +34,19 @@ class HomeController extends GetxController {
       'Permission denied forever.';
   static const String _kPermissionGrantedMessage = 'Permission granted.';
 
-  Future<void> getCurrentPosition() async {
+  Future<bool> getCurrentPosition() async {
     isLoading.value = true;
     final hasPermission = await handlePermission();
 
     if (!hasPermission) {
-      return;
+      return false;
     }
 
     final position = await _geolocatorPlatform.getCurrentPosition();
     // store position here
     longitude.value = position.longitude.toString();
     latitude.value = position.latitude.toString();
-    isLoading.value = false;
+    return true;
   }
 
   Future<bool> handlePermission() async {
@@ -118,7 +118,11 @@ class HomeController extends GetxController {
 
   Future<bool> fetchData() async {
     isLoading.value = true;
-    await getCurrentPosition();
+    // var value = await getCurrentPosition();
+    // if (!value) {
+    //   isLoading.value = false;
+    //   return false;
+    // }
     var data = await ApiServices()
         .fetchData(double.parse(latitude.value), double.parse(longitude.value));
     if (data['statusCode'] != 200) {
@@ -133,15 +137,16 @@ class HomeController extends GetxController {
           (data['main']['feels_like'] - 273.15).toStringAsFixed(1);
       tempMin.value = (data['main']['temp_min'] - 273.15).toStringAsFixed(0);
       tempMax.value = (data['main']['temp_max'] - 273.15).toStringAsFixed(0);
-      pressure.value = data['main']['pressure'].toStringAsFixed(0);
+      pressure.value = (data['main']['pressure'] * 0.001).toStringAsFixed(2);
       humidity.value = data['main']['humidity'].toStringAsFixed(0);
       visibility.value = data['visibility'].toStringAsFixed(0);
       windSpeed.value = (data['wind']['speed'] * 3.6).toStringAsFixed(2);
       country.value = data['sys']['country'].toString();
       name.value = data['name'].toString();
       weatherIcon.value = data['weather'][0]['icon'].toString();
-      weatherIconUrl.value =
-          weatherIconUrl.value.replaceFirst('{icon}', weatherIcon.value);
+      weatherIconUrl.value = temp.replaceFirst("{icon}", weatherIcon.value);
+      print(weatherIconUrl.value);
+      print(weatherIcon.value);
       isLoading.value = false;
       return true;
     }

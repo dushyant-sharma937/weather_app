@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -27,7 +28,7 @@ class ApiServices {
       final response = await http.get(Uri.parse(url));
       return handleResponse(response);
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return {'statusCode': 500, 'message': 'Server not available', 'body': {}};
     }
   }
@@ -36,7 +37,7 @@ class ApiServices {
     try {
       if (res.statusCode != 500) {
         var jsonResponse = jsonDecode(res.body);
-        print(jsonResponse);
+        debugPrint(jsonResponse.toString());
         jsonResponse['statusCode'] = res.statusCode;
         return jsonResponse;
       } else {
@@ -47,7 +48,7 @@ class ApiServices {
         };
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       return {'statusCode': 500, 'message': 'Server not available', 'body': {}};
     }
   }

@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Weather App',
-      themeMode: ThemeMode.dark,
+      themeMode: ThemeMode.system,
       theme: FlexThemeData.light(
         scheme: FlexScheme.deepPurple,
         surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
