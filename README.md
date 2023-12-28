@@ -52,6 +52,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-Thank you for using the Daily Weather Forecast App! If you have any questions or feedback, feel free to contact [your_email@example.com].
+Thank you for using the Daily Weather Forecast App! If you have any questions or feedback, feel free to contact [dushyantsharma1203@gmail.com].
 
-[video_link]: # (Replace with the actual link to your working video)
+[video_link]: # (https://drive.google.com/file/d/1OcYgK0REWZqWh6KBsI8igKLjnZEJP0zV/view?usp=sharing)
